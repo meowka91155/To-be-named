@@ -1,0 +1,324 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using System.Linq;
+
+
+
+public class playerController : Assets.InventoryBase
+{
+
+
+    public playerController() : base("Adam")
+    {
+
+    }
+
+    public static string test()
+    {
+        return Settings.playerData.currentRoom.ToString();
+    }
+
+    public float movementSpeed = 4f;
+
+    public Rigidbody2D rb;
+    public Animator animator;
+    bool isAtDoor = false;
+    public string playerText = "";
+    public bool ShowBox = false;
+    public GameObject bookUI;
+    public GameObject bookTable1;
+    public GameObject bookTable2;
+    public storyline story =  storyline.Book;
+
+    public void SavePlayer()
+    {
+
+
+        SaveSystem.SavePlayer();
+    }
+    public void LoadPlayer()
+    {
+        SaveSystem.LoadPlayer();
+        var data = Settings.playerData;
+
+        story = data.Story;
+
+        Vector3 position = new Vector3(data.Position[0], data.Position[1], data.Position[2]);
+        transform.position = position;
+    }
+
+    Vector2 movement;
+
+
+    void Start()
+    {
+        Settings.playerData.currentRoom = GameRooms.Lobby;
+        bookUI.gameObject.SetActive(false);
+        bookTable1.gameObject.SetActive(true);
+        bookTable2.gameObject.SetActive(false);
+
+
+    }
+
+    // Update is called once per frame
+
+    void OnGUI()
+    {
+        if (ShowBox)
+        {
+            Vector2 screenPos = Camera.main.WorldToScreenPoint(this.transform.position);
+            GUI.Box(new Rect(screenPos.x, Screen.height - screenPos.y, 300, 50), playerText);
+        }
+    }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+
+
+        Debug.Log("Player hitting " + collision.gameObject.tag);
+        if (isAtDoor)
+            return;
+
+        //What is the player hitting??
+        switch (collision.gameObject.name)
+        {
+
+
+
+            case "doorLobbyRoom1":
+                isAtDoor = true; //set the bool checking if player is at a door
+                Camera.current.transform.position = new Vector3(0, 10, -10); //set camera location
+                transform.position = new Vector3((float)-1.48, (float)8.31, 0); //set player location
+                Settings.playerData.currentRoom = GameRooms.Room1; //set current room of player
+
+                break;
+
+            case "doorRoom1Lobby":
+                isAtDoor = true;
+                Camera.current.transform.position = new Vector3(0, 1, -10);
+                transform.position = new Vector3((float)-1.48, (float)2.42, 0);
+
+                Settings.playerData.currentRoom = GameRooms.Lobby;
+
+                break;
+
+            case "doorRoom2Room1":
+                isAtDoor = true;
+                Camera.current.transform.position = new Vector3(0, (float)10, -10);
+                transform.position = new Vector3((float)4.54, (float)10.33, 0);
+
+                Settings.playerData.currentRoom = GameRooms.Room1;
+                break;
+
+
+            case "bookshelf4":
+                //isAtDoor = true;
+                Camera.current.transform.position = new Vector3(0, (float)-6.38, -10);
+                //transform.position = new Vector3((float)-1.48, (float)2.42, 0);
+                Settings.playerData.currentRoom = GameRooms.Lobby2;
+                break;
+
+            case "Collision Library camera":
+                //isAtDoor = true;
+                Camera.current.transform.position = new Vector3(0, (float)1, -10);
+                //transform.position = new Vector3((float)-1.48, (float)2.42, 0);
+                Settings.playerData.currentRoom = GameRooms.Lobby;
+                break;
+
+            case "doorRoom1Room2":
+
+                isAtDoor = true;
+                Camera.current.transform.position = new Vector3(0, (float)18.34, -10);
+                transform.position = new Vector3((float)4.54, (float)16.18, 0);
+                Settings.playerData.currentRoom = GameRooms.Room2;
+
+
+
+                break;
+
+            case "TriggerHallway2":
+
+                isAtDoor = true;
+                Camera.current.transform.position = new Vector3(-24, 10, -10);
+                transform.position = new Vector3((float)-17.4, (float)10.3, 0);
+                Settings.playerData.currentRoom = GameRooms.Room1_2;
+
+                break;
+            case "TriggerHallway1":
+
+                isAtDoor = true;
+                Camera.current.transform.position = new Vector3(0, 10, -10);
+                transform.position = new Vector3((float)-6.5, (float)10.3, 0);
+                Settings.playerData.currentRoom = GameRooms.Room1;
+
+                break;
+            case "libraryDesk1":
+                //if (!Settings.triggersActivated.Contains(GameRoomsTriggers.Book1Library))
+                //    Settings.triggersActive.Add(GameRoomsTriggers.Book1Library);
+
+
+                break;
+
+            case "TriggerTeacher":
+                Debug.Log("wait for teacher");
+                if (Settings.playerData.janitorFollow == Janitor.yes)
+                {
+                    Settings.playerData.storyLine = storyline.currentlyAfterJanitor;
+                    Settings.playerData.janitorFollow = Janitor.no;
+                }
+
+
+
+
+
+                //   System.Threading.Thread.Sleep(3000);
+
+                //if (Settings.currentInventory.Contains(Inventory.Book1Library))
+                //{
+                //    Settings.currentInventory.Remove(Inventory.Book1Library);
+                //    Settings.pendingInventory.Add(Inventory.Book1Library);
+
+                //    Debug.Log("given to teacher");
+                //}
+                break;
+
+        }
+
+
+    }
+
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        switch (collision.gameObject.name)
+        {
+            case "doorLobbyRoom1":
+            case "doorRoom1Lobby":
+            case "doorRoom2Room1":
+            case "doorRoom1Room2":
+            case "TriggerHallway2":
+            case "TriggerHallway1":
+                isAtDoor = false;
+                break;
+
+            case "libraryDesk1":
+                ShowBox = false;
+
+                break;
+            case "libraryDesk2":
+
+                break;
+
+            case "bookshelf4":
+            case "Collision Library camera":
+                break;
+        }
+
+    }
+
+
+    void Update()
+    {
+
+        
+
+        if (Input.GetKeyDown("f"))
+        {
+            if (Settings.playerData.currentRoom == GameRooms.Lobby)
+            {
+                var desk1d = Vector2.Distance(Settings.LibraryDesk1.gameObject.transform.position, this.transform.position);
+                var desk2d = Vector2.Distance(Settings.LibraryDesk2.gameObject.transform.position, this.transform.position);
+
+                Debug.Log($"You're {desk1d} away from Desk1 and {desk2d} away from desk2");
+
+
+                if (desk1d < 1)
+                {
+                    if (Settings.LibraryDesk1.InventoryCount > 0)
+                    {
+                        ShowBox = true;
+                        playerText = "ooh a book";
+                        bookUI.SetActive(true);
+                        bookTable1.SetActive(false);
+                        Debug.Log("taking books from desk 1");
+                        foreach (var item in Settings.LibraryDesk1.Items.ToArray())
+                            TakeItem(item, Settings.LibraryDesk1);
+                    }
+                    else if (InventoryCount > 0)
+                    {
+                        ShowBox = true;
+                        bookUI.SetActive(false);
+                        bookTable1.SetActive(true);
+                        playerText = "I'm gonna put this book here";
+                        Debug.Log("putting books in desk 1");
+                        foreach (var item in Items.ToArray())
+                            GiveItem(item, Settings.LibraryDesk1);
+                    }
+                }
+                else if (desk2d < 1)
+                {
+                    if (Settings.LibraryDesk2.InventoryCount > 0)
+                    {
+                        Debug.Log("taking books from desk 2");
+                        bookUI.SetActive(true);
+                        bookTable2.SetActive(false);
+                        foreach (var item in Settings.LibraryDesk2.Items.ToArray())
+                            TakeItem(item, Settings.LibraryDesk2);
+                    }
+                    else if (InventoryCount > 0)
+                    {
+                        Debug.Log("putting books in desk 2");
+                        bookUI.SetActive(false);
+                        bookTable2.SetActive(true);
+                        foreach (var item in Items.ToArray())
+                            GiveItem(item, Settings.LibraryDesk2);
+                    }
+                }
+            }
+        }
+
+
+        if (GetComponent<sitting>().isSitting == 1)
+        {
+            movementSpeed = 0f;
+            animator.SetFloat("Sitting", 1);
+        }
+        else movementSpeed = 4f;
+        animator.SetFloat("Sitting", 0);
+
+        movement.x = Input.GetAxisRaw("Horizontal");
+
+        movement.y = Input.GetAxisRaw("Vertical");
+
+        if (movement.x > 0)
+        {
+            Settings.playerData.currentDirection = CharacterDirection.Right;
+            //Debug.Log("going right");
+        }
+        else if (movement.x < 0)
+        {
+            Settings.playerData.currentDirection = CharacterDirection.Left;
+            //Debug.Log("going left");
+        }
+        else if (movement.y > 0)
+        {
+            Settings.playerData.currentDirection = CharacterDirection.Up;
+            //Debug.Log("going up");
+
+        }
+        else if (movement.y < 0)
+        {
+            Settings.playerData.currentDirection = CharacterDirection.Down;
+            //Debug.Log("going down");
+        }
+
+        animator.SetFloat("Horizontal", movement.x);
+        animator.SetFloat("Vertical", movement.y);
+        animator.SetFloat("Speed", movement.sqrMagnitude);
+
+    }
+    void FixedUpdate()
+    {
+        rb.MovePosition(rb.position + movement * movementSpeed * Time.fixedDeltaTime);
+    }
+}
